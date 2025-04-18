@@ -4,52 +4,44 @@ A simple media control script that uses Ctrl + Space to control music playback.
 Controls:
 - Press Ctrl + Space 1 time: Play/Pause
 - Press Ctrl + Space 2 times: Previous track
-- Press Ctrl + Space 3 times: Next track
 
 Requirements:
 - keyboard module (pip install keyboard)
 """
 
-
 import keyboard
+import pyautogui
 import time
 
-# Counter and timer for hotkey actions
-counter = 0
-start_time = None
+# Variables to track key press time and count
+last_press_time = 0
+press_count = 0
+def control_music():
+    global last_press_time, press_count
+    
+    current_time = time.time()
+    
+    # If interval between two key presses is less than 0.5 seconds, increment counter
+    if current_time - last_press_time < 0.5:
+        press_count += 1
+    else:
+        press_count = 1  # Reset counter
 
-def handle_music_action(action):
-    if action == "pause":
-        print("Pause music")
-        # Insert code to pause music here
-    elif action == "previous":
-        print("Previous track")
-        # Insert code to play previous track here
-    elif action == "next":
-        print("Next track")
-        # Insert code to play next track here
+    last_press_time = current_time
 
-def on_ctrl_space():
-    global counter, start_time
-    if start_time is None:
-        start_time = time.time()
-    counter += 1
+    if press_count == 1:
+        # Single press: Pause/Play
+        print("Ctrl + Space: Pause/Play music")
+        # Send Play/Pause control command
+        keyboard.send("play/pause media")
+    elif press_count == 2:
+        # Double press: Previous track
+        print("Ctrl + Space: Switch to previous track")
+        # Send previous track shortcut
+        pyautogui.press('prevtrack')
+        press_count = 0  # Reset counter
 
-# Set up hotkey listener
-keyboard.add_hotkey("ctrl+space", on_ctrl_space)
+# Listen for Ctrl + Space
+keyboard.add_hotkey("ctrl+space", control_music)
 
-try:
-    print("Press Ctrl + Space to control music (1x pause, 2x previous, 3x next)")
-    while True:
-        if start_time and time.time() - start_time > 0.5:  # Set 0.5 second detection window
-            if counter == 1:
-                handle_music_action("pause")
-            elif counter == 2:
-                handle_music_action("previous")
-            elif counter == 3:
-                handle_music_action("next")
-            counter = 0
-            start_time = None
-        time.sleep(0.1)
-except KeyboardInterrupt:
-    print("Program stopped")
+keyboard.wait()  # Keep program running
